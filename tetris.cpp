@@ -10,6 +10,43 @@ using namespace std;
 void displayBoard(char board[11][11], int score);
 void moveBlock(string direction, char board[11][11], int &x, int &y, int sq[4], int blockval, int &score);
 
+void ClearScreen()
+{
+	HANDLE                     hStdOut;
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	DWORD                      count;
+	DWORD                      cellCount;
+	COORD                      homeCoords = { 0, 0 };
+
+	hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (hStdOut == INVALID_HANDLE_VALUE) return;
+
+	/* Get the number of cells in the current buffer */
+	if (!GetConsoleScreenBufferInfo(hStdOut, &csbi)) return;
+	cellCount = csbi.dwSize.X * csbi.dwSize.Y;
+
+	/* Fill the entire buffer with spaces */
+	if (!FillConsoleOutputCharacter(
+		hStdOut,
+		(TCHAR) ' ',
+		cellCount,
+		homeCoords,
+		&count
+	)) return;
+
+	/* Fill the entire buffer with the current colors and attributes */
+	if (!FillConsoleOutputAttribute(
+		hStdOut,
+		csbi.wAttributes,
+		cellCount,
+		homeCoords,
+		&count
+	)) return;
+
+	/* Move the cursor home */
+	SetConsoleCursorPosition(hStdOut, homeCoords);
+}
+
 int main(){
 	ofstream fout ("keys.txt");
 	char board[11][11] = {
@@ -78,9 +115,9 @@ int main(){
 					for (int i = 0; i < 10; i++) {
 						for (int j = 0; j < 10; j++) {
 							board[i + 1][j] = board[i][j];
+							score += 10;
 						}
 					}
-					score += 100;
 				}
 			}
 			floorboard = 0;
@@ -150,7 +187,7 @@ int main(){
 			cin >> quityn;
 			if (quityn == "y") {
 				playing = false;
-				system("cls");
+				ClearScreen();
 				cout << "Goodbye!\n";
 				Sleep(1200);
 			}
@@ -419,7 +456,7 @@ int main(){
 }
 
 void displayBoard(char board[11][11], int score) {
-	system("cls");
+	ClearScreen();
 	for (int i = 0; i < 11; i++) {
 		for (int j = 0; j < 11; j++) {
 			cout << board[i][j] << " ";
@@ -430,57 +467,7 @@ void displayBoard(char board[11][11], int score) {
 }
 
 void moveBlock(string direction, char board[11][11], int &x, int &y, int sq[4], int blockval, int &score) {
-	if (direction == "down") {
-		if ((blockval > 2 || board[ y - 1][ x - 1] == '#') &&  y != 10) {
-			if ((board[ y][ x - 1] == '#' && board[ y + 1][ x] != '#' && board[ y + 1][ x - 1] != '#')) {
-				board[ y][ x] = '_';
-				board[ y][ x - 1] = '_';
-				sq[2] ? board[ y - 1][ x] = '_' : NULL;
-				sq[3] ? board[ y - 1][ x - 1] = '_' : NULL;
-			}
-			else if ((board[ y][ x - 1] != '#' && board[ y - 1][ x - 1] != '#' && board[ y + 1][ x] != '#')) {
-				board[ y][ x] = '_';
-				sq[2] ? board[ y - 1][ x] = '_' : NULL;
-				sq[3] ? board[ y - 1][ x - 1] = '_' : NULL;
-			}
-			else if ((board[ y][ x - 1] != '#' && board[ y + 1][ x] != '#')) {
-				board[ y][ x] = '_';
-				sq[2] ? board[ y - 1][ x] = '_' : NULL;
-				sq[3] ? board[ y - 1][ x - 1] = '_' : NULL;
-			}
-			else {
-				 y = 1;
-				sq[0] = 1;
-				sq[1] = rand() * 104 % 2;
-				sq[2] = rand() * 5 % 2;
-				sq[3] = rand() / 5 % 2;
-				blockval = sq[0] + sq[1] + sq[2] + sq[3];
-			}
-		}
-		else {
-			if (y == 10 || board[ y + 1][ x] == '#') {
-				 y = 1;
-				sq[0] = 1;
-				sq[1] = rand() * 104 % 2;
-				sq[2] = rand() * 5 % 2;
-				sq[3] = rand() / 5 % 2;
-				blockval = sq[0] + sq[1] + sq[2] + sq[3];
-			}
-		}
-		sq[0] ? board[ y][ x] = '_' : NULL;
-		sq[1] ? board[ y][ x - 1] = '_' : NULL;
-		sq[2] ? board[ y - 1][ x] = '_' : NULL;
-		sq[3] ? board[ y - 1][ x - 1] = '_' : NULL;
-		 y += 1;
-		score += 10;
-		sq[0] ? board[ y][ x] = '#' : NULL;
-		sq[1] ? board[ y][ x - 1] = '#' : NULL;
-		sq[2] ? board[ y - 1][ x] = '#' : NULL;
-		sq[3] ? board[ y - 1][ x - 1] = '#' : NULL;
-		displayBoard(board, score);
-		Sleep(200);
-	}
-	else if (direction == "right") {
+	if (direction == "right") {
 		board[y][x] = '_';
 		sq[1] ? board[y][x - 1] = '_' : NULL;
 		sq[2] ? board[y - 1][x] = '_' : NULL;
